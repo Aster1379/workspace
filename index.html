@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简约工作台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+	<link rel="shortcut icon" href="favicon.ico">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0a0a0a, #1a1a1a);
+            color: #e0e0e0;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+            touch-action: manipulation;
+        }
+        
+        /* 白色半透明导航栏 */
+        .navbar {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 0 20px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-container {
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .nav-brand {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #333;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 30px;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .nav-item {
+            position: relative;
+        }
+        
+        .nav-link {
+            color: #555;
+            text-decoration: none;
+            font-size: 1rem;
+            font-weight: 500;
+            padding: 8px 0;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .nav-link:hover {
+            color: #000;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #000;
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        .nav-link.active {
+            color: #000;
+        }
+        
+        .nav-link.active::after {
+            width: 100%;
+        }
+        
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: #555;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        /* 宇宙背景效果 */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(100, 100, 100, 0.1) 0px, transparent 2px),
+                radial-gradient(circle at 70% 50%, rgba(120, 120, 120, 0.1) 0px, transparent 3px),
+                radial-gradient(circle at 40% 80%, rgba(80, 80, 80, 0.1) 0px, transparent 4px);
+            background-size: 300px 300px;
+            animation: stars 60s linear infinite;
+            z-index: -1;
+        }
+        
+        @keyframes stars {
+            from { background-position: 0 0; }
+            to { background-position: 300px 300px; }
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding-top: 80px;
+        }
+        
+        /* 主时钟区域 - 占据大部分屏幕 */
+        .clock-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            margin-top: -40px; /* 向上移动以占据更多空间 */
+        }
+        
+        .clock {
+            font-size: 12vw; /* 使用视口单位使字体更大 */
+            font-weight: 700;
+            letter-spacing: 5px;
+            color: #ffffff;
+            margin-bottom: 40px; /* 增加与日期之间的间距 */
+            position: relative;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+            line-height: 1.1;
+        }
+        
+        .date {
+            font-size: 1.8rem; /* 减小日期字体大小 */
+            color: #cccccc;
+            opacity: 0.9;
+            margin-bottom: 40px;
+            letter-spacing: 2px;
+            font-weight: 600;
+            text-align: center;
+            line-height: 1.4;
+        }
+        
+        /* 功能面板 */
+        .panel {
+            background: rgba(25, 25, 25, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            padding: 25px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            overflow: hidden;
+            display: none;
+            z-index: 100;
+        }
+        
+        .panel.active {
+            display: block;
+            animation: panelFadeIn 0.3s ease;
+        }
+        
+        @keyframes panelFadeIn {
+            from { opacity: 0; transform: translate(-50%, -45%); }
+            to { opacity: 1; transform: translate(-50%, -50%); }
+        }
+        
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .panel-title {
+            font-size: 1.4rem;
+            font-weight: 300;
+            color: #ffffff;
+        }
+        
+        .close-btn {
+            background: transparent;
+            border: none;
+            color: #cccccc;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .close-btn:hover {
+            color: #ffffff;
+            transform: scale(1.1);
+        }
+        
+        /* 搜索框样式 */
+        .search-box {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        
+        .search-box input {
+            flex: 1;
+            padding: 12px 15px;
+            background: rgba(15, 15, 15, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 5px 0 0 5px;
+            color: #ffffff;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s;
+            cursor: text;
+        }
+        
+        .search-box input:focus {
+            border-color: #ffffff;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+        }
+        
+        .search-box button {
+            background: rgba(40, 40, 40, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-left: none;
+            border-radius: 0 5px 5px 0;
+            color: white;
+            padding: 0 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .search-box button:hover {
+            background: rgba(60, 60, 60, 0.9);
+        }
+        
+        /* 番茄钟样式 */
+        .pomodoro-timer {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .timer-mode {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: #ff6b6b;
+            font-weight: bold;
+        }
+        
+        .timer-mode.rest {
+            color: #4ecdc4;
+        }
+        
+        .timer-display {
+            font-size: 3rem;
+            font-weight: 200;
+            margin: 15px 0;
+            color: #ffffff;
+        }
+        
+        .timer-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .timer-btn {
+            background: rgba(40, 40, 40, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: white;
+            padding: 8px 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+            border-radius: 5px;
+        }
+        
+        .timer-btn:hover {
+            background: rgba(60, 60, 60, 0.9);
+            transform: translateY(-2px);
+        }
+        
+        /* 待办事项样式 */
+        .todo-container {
+            margin-top: 20px;
+        }
+        
+        .todo-input {
+            display: flex;
+            margin-bottom: 15px;
+        }
+        
+        .todo-input input {
+            flex: 1;
+            padding: 10px 15px;
+            background: rgba(15, 15, 15, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 5px 0 0 5px;
+            color: #ffffff;
+            font-size: 1rem;
+            outline: none;
+            cursor: text;
+        }
+        
+        .todo-input button {
+            background: rgba(40, 40, 40, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-left: none;
+            border-radius: 0 5px 5px 0;
+            color: white;
+            padding: 0 20px;
+            cursor: pointer;
+        }
+        
+        .todo-list {
+            max-height: 200px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        
+        .todo-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: rgba(30, 30, 30, 0.6);
+            border-radius: 5px;
+            margin-bottom: 8px;
+            transition: all 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .todo-item:hover {
+            background: rgba(50, 50, 50, 0.6);
+            transform: translateY(-2px);
+        }
+        
+        .todo-item input[type="checkbox"] {
+            margin-right: 10px;
+            filter: invert(70%);
+            cursor: pointer;
+        }
+        
+        .todo-item.completed span {
+            text-decoration: line-through;
+            color: #aaaaaa;
+            opacity: 0.7;
+        }
+        
+        /* 功能边栏 */
+        .sidebar {
+            position: fixed;
+            top: 50%;
+            right: -70px;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-right: none;
+            border-radius: 15px 0 0 15px;
+            padding: 15px 5px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            z-index: 5;
+            transition: right 0.3s ease;
+        }
+        
+        .sidebar:hover {
+            right: 0;
+        }
+        
+        .sidebar-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            padding: 10px;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-radius: 8px;
+        }
+        
+        .sidebar-item:hover {
+            background: rgba(255, 255, 255, 0.6);
+            color: #000;
+            transform: translateX(-5px);
+        }
+        
+        .sidebar-item i {
+            font-size: 1.2rem;
+        }
+        
+        .sidebar-item span {
+            font-size: 0.8rem;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .clock {
+                font-size: 15vw;
+                margin-bottom: 30px; /* 移动端调整间距 */
+            }
+            
+            .date {
+                font-size: 1.5rem; /* 移动端日期字体大小 */
+            }
+            
+            .nav-menu {
+                position: fixed;
+                top: 60px;
+                left: -100%;
+                width: 100%;
+                height: calc(100vh - 60px);
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(10px);
+                flex-direction: column;
+                align-items: center;
+                justify-content: flex-start;
+                padding-top: 40px;
+                gap: 25px;
+                transition: left 0.3s ease;
+            }
+            
+            .nav-menu.active {
+                left: 0;
+            }
+            
+            .mobile-menu-btn {
+                display: block;
+            }
+            
+            .panel {
+                width: 95%;
+                padding: 20px 15px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .clock {
+                font-size: 18vw;
+                margin-bottom: 25px; /* 小屏幕调整间距 */
+            }
+            
+            .date {
+                font-size: 1.2rem; /* 小屏幕日期字体大小 */
+            }
+            
+            .sidebar {
+                bottom: 0;
+                top: auto;
+                right: 0;
+                left: 0;
+                flex-direction: row;
+                justify-content: space-around;
+                border-radius: 15px 15px 0 0;
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                border-bottom: none;
+                transform: translateY(100%);
+                padding: 10px 5px;
+            }
+            
+            .sidebar:hover {
+                transform: translateY(0);
+            }
+            
+            .sidebar-item:hover {
+                transform: translateY(-5px);
+            }
+            
+            .nav-brand {
+                font-size: 1.2rem;
+            }
+            
+            .panel {
+                width: 98%;
+                padding: 15px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 白色半透明导航栏 -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="#" class="nav-brand">
+                <i class="fas fa-rocket"></i>
+                <span>简约工作台</span>
+            </a>
+            
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="#" class="nav-link active">首页</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">工具</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">设置</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">关于</a>
+                </li>
+            </ul>
+            
+            <div class="nav-actions">
+                <button class="mobile-menu-btn">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- 功能边栏 -->
+    <div class="sidebar">
+        <div class="sidebar-item" onclick="showPanel('search-panel')">
+            <i class="fas fa-search"></i>
+            <span>搜索</span>
+        </div>
+        <div class="sidebar-item" onclick="showPanel('pomodoro-panel')">
+            <i class="fas fa-clock"></i>
+            <span>番茄钟</span>
+        </div>
+        <div class="sidebar-item" onclick="showPanel('todo-panel')">
+            <i class="fas fa-tasks"></i>
+            <span>待办事项</span>
+        </div>
+    </div>
+    
+    <!-- 搜索面板 -->
+    <div class="panel" id="search-panel">
+        <div class="panel-header">
+            <h2 class="panel-title">搜索</h2>
+            <button class="close-btn" onclick="hidePanel('search-panel')"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="search-box">
+            <input type="text" id="search-input" placeholder="输入搜索内容...">
+            <button onclick="performSearch()"><i class="fas fa-search"></i></button>
+        </div>
+        <div class="search-engines">
+            <button class="timer-btn" onclick="setEngine('google')">Google</button>
+            <button class="timer-btn" onclick="setEngine('bing')">Bing</button>
+            <button class="timer-btn" onclick="setEngine('baidu')">百度</button>
+        </div>
+    </div>
+    
+    <!-- 番茄钟面板 -->
+    <div class="panel" id="pomodoro-panel">
+        <div class="panel-header">
+            <h2 class="panel-title">番茄钟</h2>
+            <button class="close-btn" onclick="hidePanel('pomodoro-panel')"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="pomodoro-timer">
+            <div class="timer-mode" id="timer-mode">工作模式</div>
+            <div class="timer-display" id="timer">25:00</div>
+            <div class="timer-controls">
+                <button class="timer-btn" id="start-btn" onclick="startTimer()">开始</button>
+                <button class="timer-btn" id="pause-btn" onclick="pauseTimer()" disabled>暂停</button>
+                <button class="timer-btn" onclick="resetTimer()">重置</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 待办事项面板 -->
+    <div class="panel" id="todo-panel">
+        <div class="panel-header">
+            <h2 class="panel-title">待办事项</h2>
+            <button class="close-btn" onclick="hidePanel('todo-panel')"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="todo-container">
+            <div class="todo-input">
+                <input type="text" id="todo-input" placeholder="添加新任务...">
+                <button onclick="addTodo()"><i class="fas fa-plus"></i></button>
+            </div>
+            <div class="todo-list" id="todo-list">
+                <!-- 待办事项将在这里动态生成 -->
+            </div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="clock-container">
+            <div class="clock" id="clock">00:00:00</div>
+            <div class="date" id="date">0000年00月00日 星期X</div>
+        </div>
+    </div>
+
+    <script>
+        // 导航栏功能
+        const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+        const navMenu = document.querySelector('.nav-menu');
+        
+        mobileMenuBtn.addEventListener('click', () => {
+            navMenu.classList.toggle('active');
+        });
+        
+        // 点击导航链接关闭移动菜单
+        const navLinks = document.querySelectorAll('.nav-link');
+        navLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                navMenu.classList.remove('active');
+            });
+        });
+        
+        // 更新时间和日期
+        function updateTime() {
+            const now = new Date();
+            
+            // 更新时钟
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('clock').textContent = `${hours}:${minutes}:${seconds}`;
+            
+            // 更新日期
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+            const weekday = weekdays[now.getDay()];
+            document.getElementById('date').textContent = `${year}年${month}月${day}日 星期${weekday}`;
+        }
+        
+        // 初始更新时间
+        updateTime();
+        // 每秒更新一次时间
+        setInterval(updateTime, 1000);
+        
+        // 显示/隐藏面板
+        function showPanel(panelId) {
+            // 隐藏所有面板
+            document.querySelectorAll('.panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+            
+            // 显示指定面板
+            document.getElementById(panelId).classList.add('active');
+            
+            // 如果是待办事项面板，加载待办事项
+            if (panelId === 'todo-panel') {
+                loadTodos();
+            }
+        }
+        
+        function hidePanel(panelId) {
+            document.getElementById(panelId).classList.remove('active');
+        }
+        
+        // 点击面板外部关闭面板
+        document.addEventListener('click', (e) => {
+            const panels = document.querySelectorAll('.panel.active');
+            panels.forEach(panel => {
+                if (!panel.contains(e.target) && !e.target.closest('.sidebar-item')) {
+                    panel.classList.remove('active');
+                }
+            });
+        });
+        
+        // 番茄钟功能
+        let timerInterval;
+        let minutes = 25;
+        let seconds = 0;
+        let isRunning = false;
+        let isWorkTime = true;
+        
+        function startTimer() {
+            if (!isRunning) {
+                isRunning = true;
+                document.getElementById('start-btn').disabled = true;
+                document.getElementById('pause-btn').disabled = false;
+                
+                timerInterval = setInterval(() => {
+                    if (seconds === 0) {
+                        if (minutes === 0) {
+                            clearInterval(timerInterval);
+                            isRunning = false;
+                            alert('时间到！');
+                            resetTimer();
+                            return;
+                        }
+                        minutes--;
+                        seconds = 59;
+                    } else {
+                        seconds--;
+                    }
+                    
+                    updateTimerDisplay();
+                }, 1000);
+            }
+        }
+        
+        function pauseTimer() {
+            clearInterval(timerInterval);
+            isRunning = false;
+            document.getElementById('start-btn').disabled = false;
+            document.getElementById('pause-btn').disabled = true;
+        }
+        
+        function resetTimer() {
+            clearInterval(timerInterval);
+            isRunning = false;
+            minutes = 25;
+            seconds = 0;
+            updateTimerDisplay();
+            document.getElementById('start-btn').disabled = false;
+            document.getElementById('pause-btn').disabled = true;
+        }
+        
+        function updateTimerDisplay() {
+            const minStr = String(minutes).padStart(2, '0');
+            const secStr = String(seconds).padStart(2, '0');
+            document.getElementById('timer').textContent = `${minStr}:${secStr}`;
+        }
+        
+        // 待办事项功能
+        function addTodo() {
+            const input = document.getElementById('todo-input');
+            const text = input.value.trim();
+            
+            if (text) {
+                const todos = JSON.parse(localStorage.getItem('todos')) || [];
+                todos.push({ text, completed: false });
+                localStorage.setItem('todos', JSON.stringify(todos));
+                
+                input.value = '';
+                loadTodos();
+            }
+        }
+        
+        function loadTodos() {
+            const todoList = document.getElementById('todo-list');
+            todoList.innerHTML = '';
+            
+            const todos = JSON.parse(localStorage.getItem('todos')) || [];
+            
+            todos.forEach((todo, index) => {
+                const todoItem = document.createElement('div');
+                todoItem.className = `todo-item ${todo.completed ? 'completed' : ''}`;
+                todoItem.innerHTML = `
+                    <input type="checkbox" id="todo-${index}" ${todo.completed ? 'checked' : ''} 
+                        onchange="toggleTodo(${index})">
+                    <span>${todo.text}</span>
+                    <button class="close-btn" onclick="removeTodo(${index})" style="margin-left: auto;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                todoList.appendChild(todoItem);
+            });
+        }
+        
+        function toggleTodo(index) {
+            const todos = JSON.parse(localStorage.getItem('todos')) || [];
+            if (index >= 0 && index < todos.length) {
+                todos[index].completed = !todos[index].completed;
+                localStorage.setItem('todos', JSON.stringify(todos));
+                loadTodos();
+            }
+        }
+        
+        function removeTodo(index) {
+            const todos = JSON.parse(localStorage.getItem('todos')) || [];
+            if (index >= 0 && index < todos.length) {
+                todos.splice(index, 1);
+                localStorage.setItem('todos', JSON.stringify(todos));
+                loadTodos();
+            }
+        }
+        
+        // 搜索功能
+        let currentEngine = 'google';
+        
+        function setEngine(engine) {
+            currentEngine = engine;
+        }
+        
+        function performSearch() {
+            const query = document.getElementById('search-input').value.trim();
+            if (query) {
+                let url;
+                switch (currentEngine) {
+                    case 'bing':
+                        url = `https://www.bing.com/search?q=${encodeURIComponent(query)}`;
+                        break;
+                    case 'baidu':
+                        url = `https://www.baidu.com/s?wd=${encodeURIComponent(query)}`;
+                        break;
+                    case 'google':
+                    default:
+                        url = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+                }
+                window.open(url, '_blank');
+            }
+        }
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            updateTimerDisplay();
+            loadTodos();
+        });
+    </script>
+</body>
+</html>
